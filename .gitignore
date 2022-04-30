@@ -1,4 +1,5 @@
 env_fmlproj
 *.pyc
+*.out
 data/
 experiments/
