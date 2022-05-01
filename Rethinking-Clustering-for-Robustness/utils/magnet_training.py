@@ -101,7 +101,9 @@ def run_magnet_epoch(model, optimizer, trainloader, device, trainset,
                     consistency_loss = consist_crit(probs, adv_scores)
 
                 # Add consistency loss to total loss
-                loss = loss + magnet_data['consistency_lambda']*consistency_loss
+                # print('magnet_loss: ', loss)
+                # print('trades_loss: ', consistency_loss)
+                loss = magnet_data['magnet_lambda']*loss + magnet_data['consistency_lambda']*consistency_loss
 
             # Include cross entropy in the loss
             if magnet_data['xent_lambda'] > 0.0:

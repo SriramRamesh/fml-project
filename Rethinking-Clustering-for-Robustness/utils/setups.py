@@ -34,7 +34,8 @@ def get_magnet_data(batch_builder, device, args, model, criterion, trainset,
         'consistency_lambda': args.consistency_lambda,
         'mse_consistency'   : args.mse_consistency,
         'normalize_probs'   : not args.not_normalize,
-        'xent_lambda'       : args.xent_lambda
+        'xent_lambda'       : args.xent_lambda,
+        'magnet_lambda'     : args.magnet_lambda,
     }
     # Compute variance in train set and store it in 'magnet_data' dict
     _, train_variance = compute_real_losses(model, criterion, trainset, 

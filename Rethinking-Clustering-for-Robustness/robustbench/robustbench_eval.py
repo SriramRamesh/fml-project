@@ -85,10 +85,11 @@ def main():
         print('Unable to load magnet_data from checkpoint. '
             'Regular training is inferred')
     eval_model = model_for_robustbench(model, magnet_data)
-    x_test, y_test = load_cifar10(n_examples=10000)
+    x_test, y_test = load_cifar10(n_examples=100)
     # threat_model='Linf'
     # adversary = AutoAttack(eval_model, norm='Linf', eps=8/255, version='custom', attacks_to_run=['apgd-ce', 'apgd-dlr'])
-    adversary = AutoAttack(eval_model, norm='Linf', eps=8/255)
+    # adversary = AutoAttack(eval_model, norm='Linf', eps=8/255)
+    adversary = AutoAttack(eval_model, norm='L2', eps=0.5)
     adversary.apgd.n_restarts = 1
     x_adv = adversary.run_standard_evaluation(x_test, y_test)
     # print(x_adv)

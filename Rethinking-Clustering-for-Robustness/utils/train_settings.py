@@ -62,6 +62,8 @@ def parse_settings(magnet_training):
     # Other parameters
     parser.add_argument('--consistency-lambda', type=float, default=0.0,
         help='multiplier for combination of magnet- and consistency-loss')
+    parser.add_argument('--magnet-lambda', type=float, default=1.0,
+        help='multiplier for combination of magnet loss')
     parser.add_argument('--xent-lambda', type=float, default=0.0,
         help='multiplier for combination of magnet- and crossentropy-loss')
     parser.add_argument('--mse-consistency', action='store_true', default=False,
