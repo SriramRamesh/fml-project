@@ -30,13 +30,13 @@ args, LOG_PATH, LOG_HEADERS, BEST_MODEL_THRESH, MODEL_INIT, ALPHA_STEP, \
 def train_epoch(model, epoch, optimizer, trainloader, device, trainset, 
         train_labels, testset, test_labels, batch_builder, print_freq, 
         cluster_refresh_interval, criterion, magnet_data, distrib_params, 
-        hardcoded_eps, minibatch_replays, actual_trades):
+        hardcoded_eps, iterations, minibatch_replays, actual_trades):
     
     model, batch_builder = magnet_epoch_wrapper(
         model, optimizer, trainloader, device, trainset, train_labels, 
         batch_builder, print_freq, cluster_refresh_interval, criterion, 
         eps=hardcoded_eps, magnet_data=magnet_data, 
-        distrib_params=distrib_params, minibatch_replays=minibatch_replays, 
+        distrib_params=distrib_params, iterations=iterations, minibatch_replays=minibatch_replays, 
         actual_trades=actual_trades
     )
     # Extract centroid and centroid classes and update magnet_data dict
@@ -119,7 +119,7 @@ def main():
                 model, epoch, optimizer, trainloader, device, trainset, 
                 train_labels, testset, test_labels, batch_builder, print_freq, 
                 cluster_refresh_interval, criterion, magnet_data, 
-                distrib_params, hardcoded_eps=HARDCODED_EPS, 
+                distrib_params, hardcoded_eps=HARDCODED_EPS, iterations=args.attack_iterations,
                 minibatch_replays=args.minibatch_replays,
                 actual_trades=args.actual_trades
         )

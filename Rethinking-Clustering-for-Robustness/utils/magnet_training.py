@@ -1,3 +1,4 @@
+from email import iterators
 from tqdm import tqdm
 from utils.utils import (AverageMeter, compute_reps, channelwise_clamp, 
     get_softmax_probs)
@@ -24,7 +25,7 @@ def cross_ent(target_distrib, pred_scores):
 
 def magnet_epoch_wrapper(model, optimizer, trainloader, device, trainset, 
         train_labels, batch_builder, print_freq, cluster_refresh_interval, 
-        criterion, eps, magnet_data, distrib_params, minibatch_replays, 
+        criterion, eps, magnet_data, distrib_params, iterations, minibatch_replays, 
         actual_trades):
     if minibatch_replays > 0: # Implicitly adversarial training
         model, batch_builder, _ = run_magnet_adv_epoch(
@@ -38,7 +39,7 @@ def magnet_epoch_wrapper(model, optimizer, trainloader, device, trainset,
         model, batch_builder, _ = run_magnet_epoch(
             model, optimizer, trainloader, device, trainset, train_labels, 
             batch_builder, print_freq, cluster_refresh_interval, criterion, 
-            eps=eps, magnet_data=magnet_data, distrib_params=distrib_params, 
+            eps=eps, magnet_data=magnet_data, iterations=iterations, distrib_params=distrib_params, 
             actual_trades=actual_trades
         )
 
@@ -47,7 +48,7 @@ def magnet_epoch_wrapper(model, optimizer, trainloader, device, trainset,
 
 def run_magnet_epoch(model, optimizer, trainloader, device, trainset, 
         train_labels, batch_builder, print_freq, cluster_refresh_interval, 
-        criterion, eps, magnet_data, distrib_params, alpha=10/255, 
+        criterion, eps, magnet_data, distrib_params, iterations, alpha=10/255, 
         actual_trades=False):
 
     consist_crit = nn.MSELoss() if magnet_data['mse_consistency'] else cross_ent
@@ -84,7 +85,7 @@ def run_magnet_epoch(model, optimizer, trainloader, device, trainset,
                     orig_preds=orig_preds, eps=eps_p, 
                     distrib_params=distrib_params, alpha=alpha_p, 
                     criterion=consist_crit, magnet_data=magnet_data, 
-                    iterations=1, rand=True, kl_loss = actual_trades
+                    iterations=iterations, rand=True, kl_loss = actual_trades
                 )
                 # Compute representation of adversarial instances
                 _, adv_embs = model(adv_instances)

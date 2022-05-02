@@ -66,6 +66,8 @@ def parse_settings(magnet_training):
         help='multiplier for combination of magnet loss')
     parser.add_argument('--xent-lambda', type=float, default=0.0,
         help='multiplier for combination of magnet- and crossentropy-loss')
+    parser.add_argument('--attack_iterations', type=int, default=1,
+        help='Number of iterations for perturbations. Auto set to 10 for actual trades.')
     parser.add_argument('--mse-consistency', action='store_true', default=False,
         help='use mean-squared error consistency')
     parser.add_argument('--not-normalize', action='store_true', default=False,
