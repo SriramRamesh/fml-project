@@ -51,7 +51,13 @@ def run_magnet_epoch(model, optimizer, trainloader, device, trainset,
         criterion, eps, magnet_data, distrib_params, iterations, alpha=10/255, 
         actual_trades=False):
 
-    consist_crit = nn.MSELoss() if magnet_data['mse_consistency'] else cross_ent
+    # consist_crit = nn.MSELoss() if magnet_data['mse_consistency'] else cross_ent
+    if(magnet_data['mse_consistency']):
+        consist_crit = nn.MSELoss()
+    elif(actual_trades):
+        consist_crit = nn.KLDivLoss(size_average=False)
+    else:
+        consist_crit = cross_ent
     model.train()
     losses = AverageMeter()
     # The next for-loop is actually an epoch
@@ -99,7 +105,11 @@ def run_magnet_epoch(model, optimizer, trainloader, device, trainset,
                         magnet_data=magnet_data, return_scores=True)
                     # Loss for consistency between adv instances and clusters 
                     # the original instances were assigned to
-                    consistency_loss = consist_crit(probs, adv_scores)
+                    if(actual_trades):
+                        consistency_loss = consist_crit(F.log_softmax(adv_scores,dim=1),probs)
+                    else:
+                        consistency_loss = consist_crit(probs, adv_scores)
+                    
 
                 # Add consistency loss to total loss
                 # print('magnet_loss: ', loss)
