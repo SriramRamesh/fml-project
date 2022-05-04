@@ -1,0 +1,65 @@
+\section{Preliminaries}
+
+We represent the training set as a set of $m$ pairs $\{x_i, y_i\}_{i = 1, \ldots, m}$, where $x_i\in\mathcal{X}$ and $y_i$ belongs to one of $C$ classes. Let $f_\theta:\mathcal{X}\rightarrow\mathbb{R}^C$ be a (DNN) classifier parametrized by $\theta$ that assigns $x\in\mathcal{X}$ to a point in the feature space $\mathbb{R}^C$. Then, the feature space will be divided in a way such that $f_\theta(x)$ may be associated to some class $c\in[C]$. 
+
+We denote by $||\cdot||_2$ the $\ell_2$-norm, by $||\cdot||_\infty$ the $\ell_\infty$-norm, and by $\{\cdot\}_+$ the hinge loss. We consider $f_\theta$ to be $\mathcal{L}_f$-Lipschitz continuous. That is, for all $x_1, x_2\in \mathbb{R}^n$, we have $||f_\theta(x_1) - f_\theta(x_2)||\leq \mathcal{L}_f||x_1-x_2||$. 
+
+\subsection{Adversarial Robustness}
+
+Adversarial robustness~\cite{Szegedy2013Robust, Biggio2013Robust} captures the idea that a neural network should classify small, imperceptible perturbations in valid inputs the same as the original input. That is, for any adversary that changes an input $x$ with classification $f_\theta(x)$ by some $\delta$ less than maximum tolerable shift $\delta_{max}$, we would like adversarial robustness to capture the idea that the network would output $f_\theta(x+\delta) = f_\theta(x)$. Such a point $x+\delta$ that instead satisfies $f_\theta(x+\delta) \neq f_\theta(x)$ may be called an \emph{adversarial example}.
+
+Adversarial robustness has proven itself to be a difficult topic to define, and in fact it is trivially impossible to achieve perfect robustness for any classifier (as for any hypothesis, there will always be inputs on the boundary between hypothesis classifications). As such, much effort has been put in to understand achievable and useful notions of adversarial robustness. Perhaps the simplest measure of robustness is the following, as in Carlini et al.~\cite{Carlini2019Robustness}:
+$$
+\mathbb{E}_{(x, y)\sim\mathcal{X}}\left[\max_{x'|\mathcal{D}(x, x') < \delta} L(f(x'), y)\right],
+$$
+where $(x, y)\sim\mathcal{X}$ is a sample from space $\mathcal{X}$ and $\mathcal{D}$ is some distance metric. 
+
+While this quantity is easy to answer in the average-case, though, it is usually infeasible to calculate exactly in the worst case — i.e., the setting where $x'$ is adversarially chosen. This has been subverted by works restricting the ability of adversaries, such as by restricting their computational complexity~\cite{Garg2020ComputationalRobustness}. 
+
+Adversarial robustness can also be notioned about by testing a given network's robustness to known attacks. While this leaves open the possibility of stronger attacks in the future, this is still a helpful benchmark for comparing robustness of different techniques (if a model is not robust against a known attack, then it stands no chance at adversarial robustness already). Perhaps the most common of these attacks is the projected gradient descent (PGD) attack~\cite{Madry2017Robust}, which adversarially attempts to maximize the loss of $f_\theta$ on a point at most $\delta$-far from a point $x_0$. This is a $\emph{white-box}$ attack, which at each step takes the projected gradient of $f_\theta$ on the previous iteration. At each stage, the PGD attack looks like so:
+$$
+x^{(k+1)} = P_{S} (x^{(k)} + \alpha\text{ sgn}(\nabla_x L(f_\theta(x), y))),
+$$
+where the loss in our setting will be the cross entropy loss and $P_S$ is the projection onto some subset $S$.
+
+RobustBench~\cite{Croce2020RobustBench} call for a stronger notion of adversarial robustness than the PGD attack by augmenting and combining it with other attacks. It employs three strategies to do so, namely:
+\begin{enumerate}
+    \item {\bf Auto-PGD}, which augments the typical PGD attack by adaptively deciding at each step whether to decrease the step size, whether to move the neighborhood in which it searches for an adversarial example, and by converging more quickly on an adversarial example by "exploring" the space around an original input before "exploiting" the area in which an adversarial example is more likely. The Auto-PGD attack is considered both for the Cross Entropy and the Digits of Logits Ratio loss~\cite{Croce2020AutoAttack} functions.
+    \item {\bf Fast Adaptive Boundary attack}~\cite{Croce2019FAB}, which on an input point $x$ attempts to first find some shift of $x$ that is classified differently, then tries to minimize the norm of this point to find an adversarial example. 
+    \item {\bf Square Attack}~\cite{Andriushchenko2019SquareAttack}, a black-box attack that probes the model at randomized nearby locations to try and find an adversarial example.
+\end{enumerate}
+This is of course a brief overview of the techniques — a full report can be found at~\cite{Croce2020AutoAttack}. If a model fails any one of these attacks with high probability, it is trivially not adversarially robust, and we in fact know an attack it is weak to. 
+
+\subsection{Clustering}
+
+The overall goal of a clustering-based classifier is to take points in the input space and classify them into clear clusters in the feature space, such that each cluster is related to a different class. In this way, clustering-based classifiers can be thought of as learning a distance metric such that the distance between entries of the same classification are closer than the distance between entries of different classes.
+
+In essence, a clustering-based classifier takes the feature space in $\mathbb{R}^d$ and divides it into different clusters based on which target class. After training, for each class, the centroids can be found through any standard clustering algorithm, e.g. K-nearest neighbors. Concretely, this will result in a feature space divided into $C\cdot K$ clusters, and on running the neural network $f_\theta(x)$ for test input $x$, we will end up assigning $x$ to the class of the cluster closest to $f_\theta(x)$. 
+
+Prior works discuss the design of clustering loss functions. Weinberger and Saul~\cite{Weinberger2009Distance} present a pair of loss functions that in tandem can train a classifier to learn a distance metric. The first, denoted $\epsilon_{pull}$, punishes transformations that spread nearby points in the training sample apart. The second, denoted $\epsilon_{push}$, punishes transformations that place far-apart points in the training sample close together. In essence, then, minimizing $\epsilon_{pull} + \epsilon_{push}$ (perhaps with some stable weighting) results in learning a function that pulls points toward their ($K$) nearest neighbors and pushes points away from all others. As noted by Rippel et al.~\cite{Rippel2015Magnet}, though, this results in some short-sightedness. For example, because the techniques of \cite{Weinberger2009Distance} at each component only consider the relations between individual points, it fails to take the structure of the overall data set into account. This is in particular an issue with non-convex shapes. 
+
+To this end, Rippel et al. introduced the concept of the Magnet Loss:
+\begin{equation}\label{eqn: magnet loss}
+\mathcal{L}_{magnet} = \frac{1}{m}\sum_{i=1}^m \left\{\alpha+\frac{1}{2\sigma^2}||f_\theta(x_i)-\mu_{y_i,\cdot}||_2^2+\log\left(\sum_{c\neq y_i}\sum_{k=1}^K e^{-\frac{1}{2\sigma^2}||f_\theta(x_i) - \mu_{c,k}||_2^2}\right)\right\}_+,
+\end{equation}
+where $\alpha\in\mathbb{R}$ is an appropriately chosen parameter, $\sigma^2$ is the variance of the distances between each data point and its respective centroid, $\mu_{y_i, \cdot}$ is the closest correct (for class $y_i$) cluster centroid to $f_\theta(x_i)$, and $\mu_{c, k}$ is the $k$-th centroid for the class $c$. In this way, the second term captures how far the training data are from their correct classifications, whereas the third term captures how close the training data are from incorrect classifications. In order to classify a point using a classifier trained with this loss, one just then must compute the class that results in the highest probability of the input point belonging to that class's cluster centroid, using the formula:
+$$
+c_{magnet}(x) = \arg\max_{c\in[C]}\frac{\sum_{\mu_c} e^{-||f_\theta(x) - \mu_{c}||_2^2/2\sigma^2}}{\sum_{\mu}e^{-||f_\theta(x) - \mu||_2^2/2\sigma^2}}.
+$$
+
+With respect to adversarial robustness, prior works consider the toy example of $C = 2$, $K = 1$. Here, the feature space is divided into only two subspaces, one associated to class $\mathcal{C}_1$ and the other to class $\mathcal{C}_2$. Let $\mu_1$ be the centroid of $\mathcal{C}_1$ and $\mu_2$ the centroid of $\mathcal{C}_2$. Then, we see $x$ is assigned to class 
+$$
+\argmin_{i\in\{1, 2\}} ||f_\theta(x) - \mu_i||.
+$$
+We observe from previous work that using clustering to map the feature space to classes implies a natural radius of adversarial robustness. We present Proposition 1 exactly as it appeared in \cite{Alfarra2020ClusTR}.
+
+\begin{proposition}[Proposition 1, \cite{Alfarra2020ClusTR}]\label{prop: robust bound}
+Consider the clustering-based binary classifier that classifies $x$ as class $\mathcal{C}_1$, i.e. $||f_\theta(x) - \mu_1|| < ||f_\theta(x) - \mu_2||$, with $\mathcal{L}_f$-Lipschitz $f_\theta$. The classifier's output for the perturbed input $(x+\delta)$ will not differ from $x$, i.e. $||f_\theta(x+\delta)-\mu_1|| < ||f_\theta(x+\delta) - \mu_2||$, for all perturbations $\delta$ that satisfy:
+\begin{equation}\label{eqn: robust bound}
+||\delta||_2 < \frac{||f_\theta(x)-\mu_2||_2^2 - ||f_\theta(x) - \mu_1||_2^2}{2\mathcal{L}_f||\mu_2-\mu_1||_2}.
+\end{equation}
+\end{proposition}
+
+In their work, Alfarra et al. attempted to increase this radius of robustness by finding and tuning a classifier that maximizes the numerator, that is, the difference between the distance from $f_\theta(x)$ to the incorrect cluster and the distance from $f_\theta(x)$ to the correct cluster. It is clear how a notion like optimizing based on the Magnet Loss may help. To this end, they proposed a system dubbed ClusTR, which consists of a "warm start" period (using, in their example, a modified version of the TRADES classifier~\cite{Zhang2019TRADES}) to reach decent performance quickly, and then removing the last linear layer and replacing it with a clustering classifier (in their case, the Magnet Loss). 
+
+While proving a robustness radius in an $\ell_p$-norm may not be sufficient for achieving all the desired notions for adversarial robustness~\cite{Carlini2019Robustness}, it does suffice for all the attacks given in AutoAttack, which each only try to find adversarial examples within a given $\epsilon$-radius with respect to some $\ell_p$-norm — in this work, $p = \infty$. It is surprising, then, that we see that ClusTR achieves no robustness against adversarial examples generated by AutoAttack. We investigate further in Section~\ref{sec: experiments}.

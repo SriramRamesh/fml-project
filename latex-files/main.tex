@@ -1,0 +1,155 @@
+\documentclass[11pt]{article}
+\usepackage[top=3cm, bottom=3cm, left=2cm, right=2cm]{geometry}  
+\usepackage{amsthm}
+\pagestyle{plain}
+\newtheorem{proposition}{Proposition}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{corollary}{Corollary}[section]
+\newtheorem{conjecture}{Conjecture}[section]
+\newtheorem{claim}{Claim}[section]
+\newtheorem{definition}{Definition}[section]
+\newtheorem{assumption}{Assumption}[section]
+\newtheorem{construction}{Construction}[section]
+
+\usepackage{amsfonts, amstext, amsmath, amscd, amssymb, hyperref, float, longtable, bm}
+\usepackage{mathtools}
+\usepackage[]{algorithm2e}
+\usepackage{epsfig, graphics, psfrag}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{color}
+\usepackage{xcolor}   
+%\newcommand{\rev}[1]{{\color{blue} #1}} 
+\newcommand{\rev}[1]{#1}
+\usepackage[font=small, labelfont=bf]{caption}
+\usepackage{float}
+\usepackage{framed}
+
+\newcommand{\authnote}[2]{{\textcolor{red}{\textsf{#1 notes: }\textcolor{blue}{#2}}\marginpar{\textcolor{red}{\textbf{!!!!!}}}}}
+\newcommand{\pnote}[1]{{\authnote{Peter}{#1}}}
+
+\newenvironment{psketch}{\renewcommand{\proofname}{Proof Sketch}\proof}{\endproof}
+
+\DeclareMathOperator*{\expe}{\mathbb{E}}
+\newcommand{\class}[1]{{\ensuremath{\mathsf{#1}}}}
+\newcommand{\gen}{\ensuremath{\class{Gen}}\xspace}
+\newcommand{\rep}{\ensuremath{\class{Rep}}\xspace}
+\newcommand{\sketch}{\ensuremath{\class{SS}}\xspace}
+\newcommand{\seed}{\ensuremath{\class{seed}}\xspace}
+\newcommand{\rec}{\ensuremath{\class{Rec}}\xspace}
+\newcommand{\enc}{\ensuremath{\class{Enc}}\xspace}
+\newcommand{\mac}{\ensuremath{\class{Tag}}\xspace}
+\newcommand{\dec}{\ensuremath{\class{Dec}}\xspace}
+\newcommand{\hash}{\ensuremath{\class{hash}}\xspace}
+\newcommand{\prg}{\ensuremath{\class{prg}}\xspace}
+\newcommand{\zo}{\ensuremath{\{0, 1\}}}
+\newcommand{\vect}[1]{\ensuremath{\mathbf{#1}}}
+\newcommand{\zq}{\ensuremath{\mathbb{Z}_q}}
+\newcommand{\Fq}{\ensuremath{\mathbb{F}_q}}
+\newcommand{\sample}{\ensuremath{\class{Sample}}\xspace}
+\newcommand{\neigh}{\ensuremath{\class{Neigh}}\xspace}
+\newcommand{\error}{\ensuremath{\class{Err}}\xspace}
+\newcommand{\weight}{\ensuremath{\class{Wgt}}\xspace}
+\newcommand{\dis}{\ensuremath{\mathsf{dis}}}
+\newcommand{\decode}{\ensuremath{\mathsf{Decode}}}
+\newcommand{\guess}{\mathsf{guess}}
+\newcommand{\aux}{\ensuremath{\class{aux}}\xspace}
+\newcommand{\eval}{\ensuremath{\class{Eval}}\xspace}
+
+
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\Succ}{\mathsf{Succ}}
+\newcommand{\Adv}{\mathbf{Adv}}
+ \newcommand{\Exp}{\mathbf{Exp}}
+
+\newcommand{\calG}{{\cal G}}
+\newcommand{\calF}{{\cal F}}
+\newcommand{\calO}{{\cal O}}
+\newcommand{\calR}{{\cal R}}
+\newcommand{\calS}{{\cal S}}
+\newcommand{\calD}{{\cal D}}
+\newcommand{\calK}{{\cal K}}
+\newcommand{\calM}{{\cal M}}
+\newcommand{\calH}{{\cal H}}
+\newcommand{\calP}{{\cal P}}
+\newcommand{\calA}{{\cal A}}
+\newcommand{\calI}{{\cal I}}
+\newcommand{\calX}{{\cal X}}
+\newcommand{\calC}{{\cal C}}
+
+
+\newcommand{\metric}{\ensuremath{\mathtt{Metric}}\xspace}
+\newcommand{\hill}{\ensuremath{\mathtt{HILL}}\xspace}
+\newcommand{\hillrlx}{\ensuremath{\mathtt{HILL\mhyphen rlx}}\xspace}
+\newcommand{\yao}{\ensuremath{\mathtt{Yao}}\xspace}
+\newcommand{\unp}{\ensuremath{\mathtt{unp}}\xspace}
+\newcommand{\unprlx}{\ensuremath{\mathtt{unp\mhyphen rlx}}\xspace}
+\newcommand{\metricstar}{\ensuremath{\mathtt{Metric}^*}\xspace}
+\newcommand{\metricd}{\ensuremath{\mathtt{Metric}^*\mathtt{-d}}\xspace}
+\newcommand{\hillstar}{\ensuremath{\mathtt{HILL}^*}\xspace}
+\newcommand{\hillprime}{\ensuremath{\mathtt{HILL'}}\xspace}
+\newcommand{\metricprime}{\ensuremath{\mathtt{Metric'}}\xspace}
+\newcommand{\metricprimestar}{\ensuremath{\mathtt{Metric'}^*}\xspace}
+\newcommand{\hillprimestar}{\ensuremath{\mathtt{HILL'}^*}\xspace}
+\newcommand{\poly}{\ensuremath{\mathtt{poly}}\xspace}
+\newcommand{\rank}{\ensuremath{\mathtt{rank}}\xspace}
+\newcommand{\ngl}{\ensuremath{\mathtt{ngl}}\xspace}
+\newcommand{\Hoo}{\mathrm{H}_\infty}
+\newcommand{\Hav}{\tilde{\mathrm{H}}_\infty}
+\newcommand{\Hfuzz}{\mathrm{H}^{\mathtt{fuzz}}_{t,\infty}}
+\newcommand{\Huse}{\mathrm{H}_{\mathtt{usable}}}
+\newcommand{\Dom}{\mathsl{Dom}}
+\newcommand{\Range}{\mathsl{Rng}}
+\newcommand{\Keys}{\mathsl{Keys}}
+\def\col{\mathrm{Col}}
+
+\newcommand{\ddetbin}{\ensuremath{\mathcal{D}^{det,\{0,1\}}}}
+\newcommand{\drandbin}{\ensuremath{\mathcal{D}^{rand,\{0,1\}}}}
+\newcommand{\ddetrange}{\ensuremath{\mathcal{D}^{det,[0,1]}}}
+\newcommand{\drandrange}{\ensuremath{\mathcal{D}^{rand,[0,1]}}}
+
+\newcommand{\expinfo}{\ensuremath{\mathcal{E}}}
+\newcommand{\ext}{\ensuremath{\mathtt{ext}}}
+\newcommand{\uhash}{\ensuremath{\mathtt{hash}}}
+\newcommand{\cextgen}{\ensuremath{\mathtt{cext_{gen}}}}
+\newcommand{\cextrep}{\ensuremath{\mathtt{cext_{rep}}}}
+\newcommand{\cond}{\ensuremath{\mathtt{cond}}}
+\newcommand{\Cond}{\ensuremath{\mathcal{CD}}}
+\newcommand{\rext}{\ensuremath{\mathtt{rext}}}
+\newcommand{\cons}{\ensuremath{\mathtt{cons}}}
+\newcommand{\decons}{\ensuremath{\mathtt{decons}}}
+
+\newcommand{\Obf}{\mathsf{Obf}}
+\newcommand{\crs}{\ensuremath{\mathtt{crs}}\xspace}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\usepackage{lipsum}
+
+\title{On Adversarial Robustness through Clustering Training}
+\author{Ankit Bhardwaj, Peter Fenteany, Sriram Ramesh\\
+\\
+\{ab9738, pf2184, sr5824\}@nyu.edu}
+\date{May 3, 2022}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    \input{Abstract}
+\end{abstract}
+
+\input{Introduction}
+\input{Preliminaries}
+\input{ClusteringBounds}
+\input{Experiments}
+\input{Conclusion}
+
+\bibliographystyle{alpha}
+\bibliography{refs}
+
+
+
+\end{document}

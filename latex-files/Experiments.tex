@@ -1,0 +1,111 @@
+\section{Experimental Results}\label{sec: experiments}
+We have experimented extensively with the ClusTR \cite{Alfarra2020ClusTR} implementation and have tested their models in several settings. We have also modified their implementation to experiment with other models not included in their work. Our codebase can be found at 
+\url{https://github.com/SriramRamesh/fml-project}. We use modified ResNet-18 backbone model with warm start used by \cite{Alfarra2020ClusTR} for different experiments. We have used the random seed 99 for all of our experiments.
+We now present our experiments and inferences evaluating the robustness of different models.
+
+\subsection{QTRADES}
+From the implementation of Alfarra et al. \cite{Alfarra2020ClusTR}, we begin the ClusTR + QTRADES model, defined using the following loss function:
+$$\mathcal{L}_{Total} = \mathcal{L}^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{CE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))$$
+Here, $f_{\theta}(x)$ represents the embeddings obtained by the model with $x$ as input, and $p(f_{\theta}(x))$ represents the probabilities for different classes based on the embeddings (equivalent to logits).
+$$x_{adv} = \Pi_{S}(x' + \eta 
+\text{ sgn}(\nabla_{x'}\mathcal{L}_{CE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))$$
+Here, S represents the sample and $\eta$ is the step-size, and $x'$ refers to a uniformly randomly perturbed image generated with $x$ as input.
+According to RobustBench (\url{https://robustbench.github.io/}), this model should have (approximately) no robustness against AutoAttack. To thoroughly evaluate this method's adversarial training, we consider the following variants of QTRADES for our experiments:
+\[\text{ClusTR+QTRADES\_MSE} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{MSE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))\\
+\\
+x_{adv} = \Pi_{S}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{MSE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+\[\text{ClusTR+CE+QTRADES} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{CE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv}))) + \lambda'\mathcal{L}_{CE}(p(f_{\theta}(x)),y)\\
+\\
+x_{adv} = \Pi_{S}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{CE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+\[\text{ClusTR+CE+QTRADES\_MSE} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{MSE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv}))) + \lambda'\mathcal{L}_{CE}(p(f_{\theta}(x)),y)\\
+\\
+x_{adv} = \Pi_{S}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{MSE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+We obtain the following results for the above experiments after using $\lambda=8$ and $\lambda'=2$. As in Alfarra et al., we use $K = 2$ clusters per class, $L=10$ nearest neighbors for normalization, and $M=12$ subsampled clusters.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+        \textbf{Experiment} & \textbf{Clean Accuracy} & \textbf{Robust Accuracy} \\
+        \hline
+        ClusTR+QTRADES & 90.88 & 0.11 \\
+        ClusTR+QTRADES\_MSE & 90.48 & 0.41 \\
+        ClusTR+CE+QTRADES & 91.34 & 0.27 \\
+        ClusTR+CE+QTRADES\_MSE & 90.57 & 0.21 \\
+        \hline
+     \end{tabular}
+    \caption{Performance for different variations of QTRADES.}
+    \label{tab:qtrades}
+\end{table}
+
+\noindent From these results, it is clear that QTRADES does \emph{not} provide robustness against sophisticated attacks like AutoAttack and is not sufficient for guaranteeing robustness of our clustering classifier.
+
+\subsection{Extended QTRADES}
+Because QTRADES does not suffice for robustness against AutoAttack, we attempt to improve upon the method by sacrificing the efficiency optimizations that the method incorporates. Our first attempt extends the QTRADES method to take multiple steps along the gradients rather than taking a single step. The experiment settings we use are as such:
+
+\[\text{ClusTR+E-QTRADES} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{CE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))\\
+\\
+x_{adv} = \Pi_{S}I_{i=1}^{10}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{CE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+\[\text{ClusTR+E-QTRADES\_MSE} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{MSE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))\\
+\\
+x_{adv} = \Pi_{S}I_{i=1}^{10}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{MSE}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+Here, $I_{i=1}^{10}$ refers to 10 iterations where $x'$ is updated in each iteration. We use $\lambda = 6$, and $K=1$ cluster per class for these experiments, and $L$ and $M$ are both set to 10. 
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+    \hline
+        \textbf{Experiment} & \textbf{Clean Accuracy} & \textbf{Robust Accuracy} \\
+        \hline
+        ClusTR+E-QTRADES & 89.91 & 0.78 \\
+        ClusTR+E-QTRADES\_MSE & 90.95 & 0.17 \\
+        \hline
+     \end{tabular}
+    \caption{Performance for different variations of E-QTRADES.}
+    \label{tab:eqtrades}
+\end{table}
+
+\noindent This is a surprising result. While we have already discussed the upper-limit of clustering approach, we would reasonably expect better results than what we obtain here. We believe this may be due to the static formulae for converting embeddings to logits in our implementation and so, we propose a learnable conversion from embeddings to logits as a direction for further investigation.
+
+\subsection{TRADES}
+One natural extension after looking at the poor performance of QTRADES is to look at the ``tested and proven" method of adversarial training and origin of QTRADES —  TRADES \cite{Zhang2019TRADES}. We hoped that with TRADES, we would be able to achieve better robust accuracy. We used two implementations of TRADES after looking at the implementations used by others, one of which was used in the original paper.
+
+\[\text{ClusTR+TRADES\_1} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{CE}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))\\
+\\
+x_{adv} = \Pi_{S}I_{i=1}^{10}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{KLDiv}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+\medskip
+\[\text{ClusTR+TRADES\_2} = \begin{cases}L^{Magnet}_{Clustering} + \lambda*\mathcal{L}_{KLDiv}(p(f_{\theta}(x)), p(f_{\theta}(x_{adv})))\\
+\\
+x_{adv} = \Pi_{S}I_{i=1}^{10}(x' + \eta \text{ sgn}(\nabla_{x'}\mathcal{L}_{KLDiv}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+Here, we witness another surprising result. We found that we were not able to train our model properly for the above given loss functions. We could achieve the highest training accuracy of $42.18\%$, which resulted in clean accuracy of $38.35\%$ and robust accuracy of $0.97\%$. It should be noted that these results only tell us that TRADES loss doesn't play well with magnet clustering loss, and training an adversarially robust model using this method would require further adaptation of the method for clustering based classifiers.
+
+\subsection{Ablations and Baseline}
+As part of our ablation study, we vary the values for our clustering parameters like number of clusters per class $K$, number of nearest neighbors for score normalization $L$ and number of subsampled clusters at each step $M$. Varying these parameters gave us similar values of clean accuracy with all values lying in the interval of $90\pm 2\%$. The effects on robust accuracy were even more marginal, with robust accuracy being less than $1\%$ in all cases.
+
+For baseline, we did direct adversarial training using magnet loss. The experiment setting can be written as:
+\[\text{ClusTR+ADV} = \begin{cases}L^{Magnet}_{Clustering}(x,y) + \lambda*L^{Magnet}_{Clustering}(p(f_{\theta}(x_{adv})), y)\\
+\\
+x_{adv} = \Pi_{S}(x' + \eta \text{ sgn}(\nabla_{x'}L^{Magnet}_{Clustering}(p(f_{\theta}(x')), p(f_{\theta}(x)))))\end{cases}\]
+
+We found here that magnet clustering adversarial training performs the best on robustness benchmark of AutoAttack. We used $\lambda=8$ for the following results.
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+        \textbf{Experiment} & \textbf{Clean Accuracy} & \textbf{Robust Accuracy} \\
+        \hline
+        ClusTR+ADV & 77.63 & \textbf{6.23} \\
+        \hline
+     \end{tabular}
+    \caption{Performance for baseline adversarial training.}
+    \label{tab:adv}
+\end{table}
+
+It should be noted that we could achieve marginally better numbers by choosing higher values for $\lambda$ and training for higher number of epochs. The baseline performance gives us hope that clustering based classifiers can be made adversarially robust, although we might need to solve the problem from scratch in context of clustering based classifiers, as other logit-based methods are not readily applicable.
+% ADD DATA AND IMPLEMENTATION DETAILS

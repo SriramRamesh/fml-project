@@ -1,0 +1,31 @@
+\section{Estimating Clustering Robustness}
+
+Unfortunately, as noted by Carlini et al.~\cite{Carlini2019Robustness}, protecting against $\ell_p$-norm shifts is not sufficient for achieving all notions of adversarial robustness we desire. However, studying adversarial robustness in this way can still provide insight as to the properties that aid or detract from robustness in the general setting. In addition, the attacks detailed in RobustBench are all based on $\ell_\infty$-constrained shifts, so studying this setting is sufficient for our purposes. 
+
+In this section, we present new bounds on the adversarial robustness guarantees of clustering classifiers, extending the results of Proposition~\ref{prop: robust bound}. We also present new generalizations of robustness guarantees as a result. 
+
+Denote by $\delta_{max}$ the upper bound for $||\delta||$ given in Equation~\ref{eqn: robust bound}. As stated before, Alfarra et al.~\cite{Alfarra2020ClusTR} focused on maximizing the robustness radius by maximizing the numerator. Here, we consider the natural other technique — minimizing the denominator $||\mu_2-\mu_1||$. 
+
+In order to minimize this value, one way forward may be to increase the number of cluster centroids used in for each classification. Especially when assuming the data obeys some notion of well-spreadedness, this seems promising. ClusTR only considered each class as having two centroids. 
+
+However, attempting to do so has unintended consequences theoretically. For a given point $x$, consider the trio of points as in Proposition~\ref{prop: robust bound}: $f_\theta(x)$, the mapping of $x$ onto the feature space; $\mu_c$, the centroid of class $c$ that is closest to $f_\theta(x)$; and $\mu_{c'}$, the centroid of class $c'\neq c$ that is second-closest to $f_\theta(x)$. Note that, even in the case with $C > 2, K > 1$, there will be some two clusters of different classes which are the closest to $f_\theta(x)$, so this setting is sufficient for understanding the multi-class, multiple cluster setting. Then, we witness the following bound:
+\begin{equation}
+    \frac{||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||}{2\mathcal{L}_f} \leq \delta_{max} \leq     \frac{||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||}{2\mathcal{L}_f}.
+\end{equation}
+\begin{proof}
+Consider the trio of points in $\mathbb{R}^d$ $f_\theta(x), \mu_c, \mu_{c'}$. We will apply the triangle inequality with respect to these three points to the right-hand side of Equation~\ref{eqn: robust bound}, finding
+\begin{align*}
+\delta_{max} = \frac{||f_\theta(x)-\mu_{c'}||^2 - ||f_\theta(x) - \mu_c||^2}{2\mathcal{L}_f||\mu_{c'}-\mu_c||} &= \frac{(||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||)(||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||)}{2\mathcal{L}_f||\mu_{c'}-\mu_c||}\\
+&\leq \frac{(||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||)(||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||)}{2\mathcal{L}_f(||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||)}\\
+& = \frac{||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||}{2\mathcal{L}_f}
+\end{align*}
+as an upper bound. Similarly, for the lower bound, we have
+\begin{align*}
+\delta_{max} = \frac{||f_\theta(x)-\mu_{c'}||^2 - ||f_\theta(x) - \mu_c||^2}{2\mathcal{L}_f||\mu_{c'}-\mu_c||} &= \frac{(||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||)(||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||)}{2\mathcal{L}_f||\mu_{c'}-\mu_c||}\\
+&\geq \frac{(||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||)(||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||)}{2\mathcal{L}_f(||f_\theta(x) - \mu_{c'}|| + ||f_\theta(x) - \mu_c||)}\\
+&= \frac{||f_\theta(x) - \mu_{c'}|| - ||f_\theta(x) - \mu_c||}{2\mathcal{L}_f}
+\end{align*}
+as a lower bound. Note that these results hold hold if and only if $||f_\theta(x) - \mu_{c'}|| \neq \pm||f_\theta(x) - \mu_c||$. However, for any nontrivial data set, these are true with overwhelming probability, as either case would require two or more of $f_\theta(x), \mu_c, \mu_{c'}$ to coincide. 
+\end{proof}
+
+We see this gives us a tight maximum robustness range, where $\delta_{max}$ is in a $||f_\theta(x)-\mu_c||/2\mathcal{L}_f$-radius around $||f_\theta(x) - \mu_{c'}||/2\mathcal{L}_f$. We would like and expect this to be fairly tight, as this would give us our best-case robustness radius. To achieve this, our goal should be to minimize the distance $||f_\theta(x)- \mu_c||$. From this perspective, one approach is clear — increasing the number of clusters should in theory decrease the distance from $f_\theta(x)$ to its nearest centroid, given some assumptions of well-spreadedness. However, as our bounds show, this may be a double edged sword. As the distance between $f_\theta(x)$ and its nearest centroid decreases, we may also see that the distance between $f_\theta(x)$ and its second-nearest centroid will also decrease, thereby decreasing the bounds we showed. Therefore, it is unclear what an optimal number of centroids per class is, and it is highly likely this amount is dependent on the classifier used and the underlying data properties. In the following sections, we detail our efforts in researching this further for the case of the CIFAR-10 dataset.
